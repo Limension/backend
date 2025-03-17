@@ -40,7 +40,11 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging")
     implementation("io.ktor:ktor-server-call-id")
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-json:$exposed_version")
+    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("org.postgresql:postgresql:42.7.4")
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.github.flaxoos:ktor-server-rate-limiting:2.1.2")
     implementation("io.github.flaxoos:ktor-server-task-scheduling-core:2.1.2")
@@ -53,4 +57,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
+    implementation("com.sun.mail:javax.mail:1.6.2")
+    implementation("io.github.crackthecodeabhi:kreds:0.9.1")
 }

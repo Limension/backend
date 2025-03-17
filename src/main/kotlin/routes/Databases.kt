@@ -1,54 +1,20 @@
-package net.blophy.workspace.routes
-
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import net.blophy.workspace.models.ExposedUser
-import net.blophy.workspace.models.UserService
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
+import java.sql.Connection.TRANSACTION_SERIALIZABLE
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import net.blophy.workspace.Settings
 
-fun Application.configureDatabases() {
-    val database = Database.connect(
-        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        user = "root",
-        driver = "org.h2.Driver",
-        password = "",
-    )
-    val userService = UserService(database)
-    routing {
-        // Create user
-        post("/users") {
-            val user = call.receive<ExposedUser>()
-            val id = userService.create(user)
-            call.respond(HttpStatusCode.Created, id)
-        }
+fun configureDatabases() {
+    val dataSource = HikariDataSource(HikariConfig().apply {
+        jdbcUrl = "${Settings.jdbcHead}${Settings.dbAddr}/${Settings.dbName}"
+        username = Settings.dbUsername
+        password = Settings.dbPassword
+        driverClassName = "org.postgresql.Driver"
+        maximumPoolSize = 10
+    })
 
-        // Read user
-        get("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = userService.read(id)
-            if (user != null) {
-                call.respond(HttpStatusCode.OK, user)
-            } else {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        }
-
-        // Update user
-        put("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = call.receive<ExposedUser>()
-            userService.update(id, user)
-            call.respond(HttpStatusCode.OK)
-        }
-
-        // Delete user
-        delete("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            userService.delete(id)
-            call.respond(HttpStatusCode.OK)
-        }
-    }
+    val db = Database.connect(dataSource)
+    TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
+    TransactionManager.defaultDatabase = db
 }

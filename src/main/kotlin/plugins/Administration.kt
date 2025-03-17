@@ -1,18 +1,9 @@
 package net.blophy.workspace.plugins
 
-import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.RateLimiting
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.implementations.TokenBucket
-import io.github.flaxoos.ktor.server.plugins.taskscheduling.TaskScheduling
-import io.github.flaxoos.ktor.server.plugins.taskscheduling.managers.lock.database.DefaultTaskLockTable
-import io.github.flaxoos.ktor.server.plugins.taskscheduling.managers.lock.database.jdbc
-import io.github.flaxoos.ktor.server.plugins.taskscheduling.managers.lock.database.mongoDb
-import io.github.flaxoos.ktor.server.plugins.taskscheduling.managers.lock.redis.redis
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.configureAdministration() {
@@ -27,7 +18,7 @@ fun Application.configureAdministration() {
             }
         }
     }
-    install(TaskScheduling) {
+    /*install(TaskScheduling) {
         // Choose task manager config based on your chosen task manager dependencies
         redis { // <-- given no name, this will be the default manager
             connectionPoolInitialSize = 1
@@ -73,5 +64,5 @@ fun Application.configureAdministration() {
             name = "My Jdbc task"
             // rest of task config
         }
-    }
+    }*/
 }
