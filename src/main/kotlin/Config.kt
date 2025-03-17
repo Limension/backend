@@ -1,53 +1,73 @@
-@file:Suppress("SpellCheckingInspection")
-
 package net.blophy.workspace
 
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.server.application.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
+import kotlinx.io.IOException
+import net.blophy.workspace.manager.logger
 
-@Serializable
-data class Config(
-    val host: String? = null,
-    val port: Int? = null,
-    val tokenExpireAt: Long? = null,
-    val dbAddr: String? = null,
-    val dbName: String? = null,
-    val dbUsername: String? = null,
-    val smtpHost: String? = null,
-    val smtpPort: Int? = null,
-    val smtpUsername: String? = null,
-    val redisUrl: String? = null,
-    val jdbcHead: String? = null,
-)
+object Config {
+    // 通过延迟加载确保单例初始化安全
+    lateinit var environment: ApplicationEnvironment
 
-object Settings {
+    fun getConfig(env: String, default: String, key: String? = null) =
+        System.getenv(env)?.toString()
+            ?: key?.let { environment.config.propertyOrNull(it)?.toString() }
+            ?: default
 
-    private var c = Config()
+    // Token 配置
+    val tokenExpireAt: Long by lazy {
+        getConfig("TOKEN_EXPIRE_AT", (6_048_000_000L).toString(), "limension.security.token_expire").toLong()
+    }
 
-    // Token
-    val tokenExpireAt =
-        System.getenv("TOKEN_EXPIRE_AT")?.toLongOrNull() ?: c.tokenExpireAt ?: 6.048e10.toLong() // 6.048*10⁸ms, 即7天
+    // 数据库配置
+    val dbUrl: String by lazy {
+        getConfig("DB_URL", "localhost:5432", "limension.database.url")
+    }
 
-    val dbAddr = System.getenv("MAINDB_URL") ?: c.dbAddr ?: "localhost:5432"
-    val dbName = System.getenv("DB_NAME") ?: c.dbName ?: "citrus"
-    val dbUsername = System.getenv("MAINDB_USERNAME") ?: c.dbUsername ?: "surtic"
-    val dbPassword = System.getenv("MAINDB_PASSWORD") ?: ""
+    val dbName: String by lazy {
+        System.getenv("DB_NAME") ?: environment.config.propertyOrNull("limension.database.name")?.getString()
+        ?: "limension"
+        getConfig("DB_URL", "limension", "limension.database.name")
+    }
 
-    val redis = System.getenv("REDIS_URL") ?: c.redisUrl ?: "localhost:6379"
+    val dbUsername: String by lazy {
+        getConfig("DB_URL", "limension", "limension.database.user")
+    }
 
-    val jdbcHead = System.getenv("JDBC_HEAD") ?: c.jdbcHead ?: "jdbc:postgresql://"
+    val dbPassword: String by lazy {
+        getConfig("DB_URL", "limension")
+    }
 
-    // Email SMTP
-    val smtpHost: String? = System.getenv("SMTP_HOST") ?: c.smtpHost
-    val smtpPort = System.getenv("SMTP_PORT")?.toIntOrNull() ?: c.smtpPort ?: 465
-    val smtpUsername = System.getenv("SMTP_USERNAME") ?: c.smtpUsername ?: "noreply@blophy.net"
-    val smtpPassword = System.getenv("SMTP_PASSWORD") ?: ""
+    // Redis 配置
+    val redis: String by lazy {
+        getConfig("REDIS_URL", "localhost:6379", "limension.redis")
+    }
 
-    // EmailServiceList
-    val commonEmailService = setOf(
+    // 邮件配置
+    val smtpHost: String? by lazy {
+        System.getenv("SMTP_HOST") ?: environment.config.propertyOrNull("limension.ext.smtp.host")?.getString()
+    }
+
+    val smtpPort: String? by lazy {
+        System.getenv("SMTP_PORT") ?: environment.config.propertyOrNull("limension.ext.smtp.port")?.getString()
+    }
+
+    val smtpUsername: String? by lazy {
+        System.getenv("SMTP_USERNAME") ?: environment.config.propertyOrNull("limension.ext.smtp.username")?.getString()
+    }
+
+    val smtpPassword: String? by lazy {
+        System.getenv("SMTP_PASSWORD")
+    }
+
+    val tsTypeGeneratePath: String by lazy {
+        getConfig("TS_GENERATE_PATH", "generated", "limension.ext.dev.type_generating.path")
+    }
+
+    val commonEmailService: Set<String> = setOf(
         // 腾讯
         "qq.com",
         "vip.qq.com",
@@ -80,11 +100,19 @@ object Settings {
         "milthm.cn",
         "morizero.com"
     )
-    val trustedEmailService = setOf(
-        "blophy.net",
-    )
-    val blockedEmailService = runBlocking {
-        HttpClient().get("https://raw.githubusercontent.com/disposable/disposable-email-domains/master/domains_strict.txt")
-            .bodyAsText().split("\\r?\\n|\\r").toSet()
+    val trustedEmailService: Set<String> = setOf("blophy.net")
+
+    val blockedEmailService: Set<String> by lazy {
+        try {
+            runBlocking {
+                HttpClient().use { client ->
+                    client.get("https://raw.githubusercontent.com/disposable/disposable-email-domains/master/domains_strict.txt")
+                        .bodyAsText().lines().toSet()
+                }
+            }
+        } catch (e: IOException) {
+            logger.warn("Failed to load domains: $e")
+            emptySet()
+        }
     }
 }

@@ -3,13 +3,14 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import net.blophy.workspace.Settings
+import net.blophy.workspace.Config
+
 
 fun configureDatabases() {
     val dataSource = HikariDataSource(HikariConfig().apply {
-        jdbcUrl = "${Settings.jdbcHead}${Settings.dbAddr}/${Settings.dbName}"
-        username = Settings.dbUsername
-        password = Settings.dbPassword
+        jdbcUrl = "jdbc:postgresql://${Config.dbUrl}/${Config.dbName}"
+        username = Config.dbUsername
+        password = Config.dbPassword
         driverClassName = "org.postgresql.Driver"
         maximumPoolSize = 10
     })

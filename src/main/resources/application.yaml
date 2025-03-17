@@ -4,4 +4,22 @@ ktor:
       - net.blophy.workspace.ApplicationKt.module
   deployment:
     port: 8080
+    host: 127.0.0.1
   development: true
+
+limension:
+  security:
+    token_expire: 6048000000
+  database:
+    url: "localhost:5432"
+    name: limension
+    user: limension
+  redis: "localhost:6379"
+  ext:
+    smtp:
+      host: null
+      port: null
+      user: null
+    dev:
+      type_generating:
+        path: "/home/demo/WebstormProjects/Limension/app/types"

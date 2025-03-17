@@ -1,59 +1,57 @@
 package net.blophy.workspace.models
 
+import dev.adamko.kxstsgen.KxsTsGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import net.blophy.workspace.Config
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
+
+object Users : IntIdTable() {
+    val name = text("name")
+    val password = text("password")
+    val email = text("email")
+    val verified = bool("verified").default(false)
+    val extraEmails = array<String>("extra_emails").default(listOf())
+    val group = array<Int>("group").default(listOf(0))
+    val totp = text("totp").nullable()
+    val webauthn = text("webauthn").nullable()
+}
 
 @Serializable
-data class ExposedUser(val name: String, val age: Int)
+data class User(
+    val id: Int,
+    val username: String,
+    val password: String,
+    val email: String,
+    val verified: Boolean,
+    val extraEmail: List<String>,
+    val group: List<Int>,
+    val totp: String?,
+    val webauthn: String?
+)
 
-class UserService(database: Database) {
-    object Users : Table() {
-        val id = integer("id").autoIncrement()
-        val name = varchar("name", length = 50)
-        val age = integer("age")
+fun ResultRow.toUser() = User(
+    id = this[Users.id].value,
+    username = this[Users.name],
+    password = this[Users.password],
+    email = this[Users.email],
+    verified = this[Users.verified],
+    extraEmail = this[Users.extraEmails],
+    group = this[Users.group],
+    totp = this[Users.totp],
+    webauthn = this[Users.webauthn],
+)
 
-        override val primaryKey = PrimaryKey(id)
-    }
+class UserService {
 
     init {
-        transaction(database) {
-            SchemaUtils.create(Users)
-        }
-    }
-
-    suspend fun create(user: ExposedUser): Int = dbQuery {
-        Users.insert {
-            it[name] = user.name
-            it[age] = user.age
-        }[Users.id]
-    }
-
-    suspend fun read(id: Int): ExposedUser? {
-        return dbQuery {
-            Users.selectAll()
-                .where { Users.id eq id }
-                .map { ExposedUser(it[Users.name], it[Users.age]) }
-                .singleOrNull()
-        }
-    }
-
-    suspend fun update(id: Int, user: ExposedUser) {
-        dbQuery {
-            Users.update({ Users.id eq id }) {
-                it[name] = user.name
-                it[age] = user.age
-            }
-        }
-    }
-
-    suspend fun delete(id: Int) {
-        dbQuery {
-            Users.deleteWhere { Users.id.eq(id) }
-        }
+        /*transaction {
+            arrayOf<Table>(Users)
+        }*/
+        File("${Config.tsTypeGeneratePath}/user.ts").writeText(KxsTsGenerator().generate(User.serializer()))
     }
 
     private suspend fun <T> dbQuery(block: suspend () -> T): T =

@@ -3,7 +3,7 @@ package net.blophy.workspace.models
 import io.github.crackthecodeabhi.kreds.connection.Endpoint
 import io.github.crackthecodeabhi.kreds.connection.KredsClient
 import io.github.crackthecodeabhi.kreds.connection.newClient
-import net.blophy.workspace.Settings
+import net.blophy.workspace.Config
 
 class KredsResourceWrapper(private val origin: KredsClient) {
     suspend fun set(key: String, value: String, expireSeconds: ULong? = null) {
@@ -19,18 +19,8 @@ class KredsResourceWrapper(private val origin: KredsClient) {
 }
 
 object Cache {
-    @Deprecated(
-        message = "Use Kreds ResourceWrapper Instead",
-        replaceWith = ReplaceWith("Cache.useWrapper(body)")
-    )
-    suspend fun <R> use(body: suspend (KredsClient) -> R): R {
-        return newClient(Endpoint.from(Settings.redis)).use { client ->
-            body(client)
-        }
-    }
-
     suspend fun <R> useWrapper(body: suspend (KredsResourceWrapper) -> R): R {
-        return newClient(Endpoint.from(Settings.redis)).use { client ->
+        return newClient(Endpoint.from(Config.redis)).use { client ->
             body(KredsResourceWrapper(client))
         }
     }

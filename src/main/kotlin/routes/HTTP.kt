@@ -6,8 +6,6 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.forwardedheaders.*
-import io.ktor.server.plugins.hsts.*
-import io.ktor.server.plugins.httpsredirect.*
 
 fun Application.configureHTTP() {
     install(Compression)
@@ -20,6 +18,7 @@ fun Application.configureHTTP() {
         allowHeader("MyCustomHeader")
         anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
+    /*
     install(HSTS) {
         includeSubDomains = true
     }
@@ -28,7 +27,7 @@ fun Application.configureHTTP() {
         sslPort = 443
         // 301 Moved Permanently, or 302 Found redirect.
         permanentRedirect = true
-    }
+    }*/
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }

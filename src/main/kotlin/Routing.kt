@@ -1,10 +1,14 @@
 package net.blophy.workspace
 
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sse.*
-import io.ktor.sse.*
+import kotlinx.serialization.json.Json
+
+/*import io.ktor.server.sse.*
+import io.ktor.sse.**/
 
 fun Application.configureRouting() {
     /*install(RequestValidation) {
@@ -14,13 +18,16 @@ fun Application.configureRouting() {
             else ValidationResult.Valid
         }
     }*/
-    install(SSE)
+    //install(SSE)
+    install(ContentNegotiation) {
+        json(Json { prettyPrint = true })
+    }
     routing {
         get("/") {
-            call.respondText("Hello World!")
+            call.respond(mapOf("content" to "Hello World!"))
         }
-        sse("/hello") {
-            send(ServerSentEvent("world"))
-        }
+        /*        sse("/hello") {
+                    send(ServerSentEvent("world"))
+                }*/
     }
 }

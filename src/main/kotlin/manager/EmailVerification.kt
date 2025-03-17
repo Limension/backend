@@ -1,7 +1,7 @@
 package net.blophy.workspace.manager
 
 import io.ktor.util.logging.*
-import net.blophy.workspace.Settings
+import net.blophy.workspace.Config
 import net.blophy.workspace.models.useCache
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -84,15 +84,33 @@ object CodeMan {
     }
 
     fun genMessage(username: String, code: String) =
-        "Hi $username,\nAn action performed on your account requires verification.\n\nYour verification code is: $code\nYou can enter the code with or without spaces.\n\nIf you did not request this, please REPLY IMMEDIATELY as your account may be in danger.\n\n--\nLime Network | https://workspace.blophy.net"
+        """Hi $username,
+An action performed on your account requires verification.
+
+Your verification code is: $code
+You can enter the code with or without spaces.
+
+If you did not request this, please REPLY IMMEDIATELY as your account may be in danger.
+
+--
+Lime Network | https://workspace.blophy.net"""
 
     fun genRegisterMessage(username: String, code: String) =
-        "Hi $username,\nYou are requesting verification of an email address.\n\nYour verification code is: $code\nYou can enter the code with or without spaces.\n\nIf you did not request this, please REPLY IMMEDIATELY as your account may be in danger.\n\n--\nLime Network | https://workspace.blophy.net"
+        """Hi $username,
+You are requesting verification of an email address.
+
+Your verification code is: $code
+You can enter the code with or without spaces.
+
+If you did not request this, please REPLY IMMEDIATELY as your account may be in danger.
+
+--
+Lime Network | https://workspace.blophy.net"""
 }
 
 object VerificationCodeManager {
-    private val service = if (Settings.smtpHost != null) EmailService(
-        Settings.smtpHost, Settings.smtpPort.toString(), Settings.smtpUsername, Settings.smtpPassword
+    private val service = if (Config.smtpHost != null) EmailService(
+        Config.smtpHost!!, Config.smtpPort.toString(), Config.smtpUsername!!, Config.smtpPassword!!
     ) else null
 
     suspend fun genCode(username: String, email: String): Int {

@@ -20,7 +20,6 @@ application {
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 dependencies {
@@ -59,4 +58,6 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     implementation("com.sun.mail:javax.mail:1.6.2")
     implementation("io.github.crackthecodeabhi:kreds:0.9.1")
+    implementation("io.ktor:ktor-serialization-gson:3.1.1")
+    implementation("dev.adamko.kxstsgen:kxs-ts-gen-core:0.2.4")
 }
