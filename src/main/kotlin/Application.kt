@@ -1,9 +1,6 @@
 package net.blophy.workspace
 
-import configureDatabases
 import io.ktor.server.application.*
-import net.blophy.workspace.models.MissionsService
-import net.blophy.workspace.models.UserService
 import net.blophy.workspace.plugins.configureAdministration
 import net.blophy.workspace.plugins.configureMonitoring
 import net.blophy.workspace.plugins.configureSecurity
@@ -19,10 +16,9 @@ fun Application.module() {
     configureSecurity()
     configureHTTP()
     configureMonitoring()
-    //configureDatabases()
+    //net.blophy.workspace.models.configureDatabases()
+    //net.blophy.workspace.models.createMissingTablesForPartitionDb()
     configureSockets()
     configureAdministration()
     configureRouting()
-    val userService = UserService()
-    val missionService = MissionsService()
 }

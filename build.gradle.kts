@@ -57,6 +57,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
     implementation("com.sun.mail:javax.mail:1.6.2")
+    implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.github.crackthecodeabhi:kreds:0.9.1")
     implementation("io.ktor:ktor-serialization-gson:3.1.1")
     implementation("dev.adamko.kxstsgen:kxs-ts-gen-core:0.2.4")

@@ -13,7 +13,6 @@ class KredsResourceWrapper(private val origin: KredsClient) {
     }
 
     suspend fun exists(key: String): Boolean = origin.exists(key) == 1.toLong()
-    suspend fun exists(vararg keys: String): Long = origin.exists(*keys)
     suspend fun get(key: String): String? = origin.get(key)
     suspend fun del(key: String) = origin.del(key)
 }

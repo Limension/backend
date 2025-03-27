@@ -1,7 +1,6 @@
 package net.blophy.workspace.plugins
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -9,44 +8,23 @@ import io.ktor.server.plugins.csrf.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.util.*
 import kotlinx.serialization.Serializable
+import net.blophy.workspace.models.UserService
 
 fun Application.configureSecurity() {
     authentication {
-        basic(name = "myauth1") {
-            realm = "Ktor Server"
+        basic {
             validate { credentials ->
+                val user = UserService.findUserByUsername(credentials.name)
                 if (credentials.name == credentials.password) {
-                    UserIdPrincipal(credentials.name)
-                } else {
-                    null
+                    if (user?.id != null) {
+                        UserIdPrincipal(user.id.toString())
+                    } else {
+                        null
+                    }
                 }
             }
         }
-
-        form(name = "myauth2") {
-            userParamName = "user"
-            passwordParamName = "password"
-            challenge {
-                /**/
-            }
-        }
-    }
-    authentication {
-        val myRealm = "MyRealm"
-        val usersInMyRealmToHA1: Map<String, ByteArray> = mapOf(
-            // pass="test", HA1=MD5("test:MyRealm:pass")="fb12475e62dedc5c2744d98eb73b8877"
-            "test" to hex("fb12475e62dedc5c2744d98eb73b8877")
-        )
-
-        digest("myDigestAuth") {
-            digestProvider { userName, realm ->
-                usersInMyRealmToHA1[userName]
-            }
-        }
-    }
-    authentication {
         oauth("auth-oauth-google") {
             urlProvider = { "http://localhost:8080/callback" }
             providerLookup = {
@@ -60,7 +38,7 @@ fun Application.configureSecurity() {
                     defaultScopes = listOf("https://www.googleapis.com/auth/userinfo.profile")
                 )
             }
-            client = HttpClient(Apache)
+            client = HttpClient()
         }
     }
     install(CSRF) {
@@ -79,24 +57,6 @@ fun Application.configureSecurity() {
         }
     }
     routing {
-        authenticate("myauth1") {
-            get("/protected/route/basic") {
-                val principal = call.principal<UserIdPrincipal>()!!
-                call.respondText("Hello ${principal.name}")
-            }
-        }
-        authenticate("myauth2") {
-            get("/protected/route/form") {
-                val principal = call.principal<UserIdPrincipal>()!!
-                call.respondText("Hello ${principal.name}")
-            }
-        }
-        authenticate("myDigestAuth") {
-            get("/protected/route/digest") {
-                val principal = call.principal<UserIdPrincipal>()!!
-                call.respondText("Hello ${principal.name}")
-            }
-        }
         authenticate("auth-oauth-google") {
             get("login") {
                 call.respondRedirect("/callback")
@@ -107,11 +67,6 @@ fun Application.configureSecurity() {
                 call.sessions.set(UserSession(principal?.accessToken.toString()))
                 call.respondRedirect("/hello")
             }
-        }
-        get("/session/increment") {
-            val session = call.sessions.get<MySession>() ?: MySession()
-            call.sessions.set(session.copy(count = session.count + 1))
-            call.respondText("Counter is ${session.count}. Refresh to increment.")
         }
     }
 }

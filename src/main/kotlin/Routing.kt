@@ -2,10 +2,12 @@ package net.blophy.workspace
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
+import net.blophy.workspace.routes.user.userRoutes
 
 /*import io.ktor.server.sse.*
 import io.ktor.sse.**/
@@ -29,5 +31,7 @@ fun Application.configureRouting() {
         /*        sse("/hello") {
                     send(ServerSentEvent("world"))
                 }*/
+        staticResources("/static", "static")
+        userRoutes()
     }
 }

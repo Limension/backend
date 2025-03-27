@@ -1,10 +1,8 @@
 package net.blophy.workspace.models
 
-import dev.adamko.kxstsgen.KxsTsGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import net.blophy.workspace.Config
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,7 +10,6 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.io.File
 
 object Missions : IntIdTable("projects") {
     val name = text("name")
@@ -71,13 +68,9 @@ fun ResultRow.toMission() = Mission(
     partition = this[Missions.partition],
 )
 
-class MissionsService {
-    init {
-        //arrayOf<Table>(Missions)
-        File("${Config.tsTypeGeneratePath}/mission.ts").writeText(KxsTsGenerator().generate(Mission.serializer()))
-    }
+object MissionsService {
 
-    suspend fun new() = {
+    fun new() = {
         MissionsEntity.new { }
     }
 
